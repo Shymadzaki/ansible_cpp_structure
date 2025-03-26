@@ -177,28 +177,21 @@ int Playbook::select_playbook(const vector<string>& playbooks, const string& pla
 	curs_set(0);
 	keypad(stdscr, TRUE);
 
+    int current_page = 0;
 	int choice = 0;
 	int key;
 
 	while (true) {
 		clear();
 		printw("choose your poison:\n");
-
-		for (size_t i=0; i < playbooks.size(); i++) {
-			if (i == choice) {
-				attron(A_REVERSE);
-			}
-
-			printw("%s\n", playbooks[i].c_str());
-			if (i == choice) {
-				attroff(A_REVERSE);
-			}
-		}
-
-		key = getch ();
-		choice = Main_menu::handle_choice_navigation(choice, playbooks.size(), key);
-
-		if (key == 'v') {
+        
+        Main_menu::print_menu(choice, playbooks, current_page);
+        
+        key = getch ();
+		
+        choice = Main_menu::handle_choice_navigation(choice, playbooks.size(), key, current_page);
+        
+        if (key == 'v') {
 			string filepath = playbook_dir + "/" + playbooks[choice];
 			Playbook::preview(filepath);
 		}
@@ -207,7 +200,7 @@ int Playbook::select_playbook(const vector<string>& playbooks, const string& pla
 			Playbook::edit(filepath);
 		}
 		else if (key == 'q') {
-			Main_menu::main_menu();
+            return -1;
 		}
 		else if (key == '\n') {
 			break;

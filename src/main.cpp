@@ -32,10 +32,15 @@ int main() {
 		
 
 		int pb_choice = Playbook::select_playbook(playbooks, playbook_dir);
-		string selected_playbook = playbook_dir + "/" + playbooks[pb_choice];
-
-		cout << "drink poison: " << selected_playbook << "...\n";
-		Playbook::run(selected_playbook);
+			if (pb_choice == -1) {
+			continue;	
+			}
+			else {
+			string selected_playbook = playbook_dir + "/" + playbooks[pb_choice];
+			cout << "drink poison: " << selected_playbook << "...\n";
+			Playbook::run(selected_playbook);
+			}
+			break;
 		}
 		else if (choice == 2) {
 			Playbook::create();

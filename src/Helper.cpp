@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <iostream>
 #include <ctime>
+#include <ncurses.h>
 
 namespace fs = std::filesystem;
 
@@ -17,4 +18,21 @@ std::string Helper::get_current_time() {
     char buffer[9];
     strftime(buffer, sizeof(buffer), "%H-%M-%S", localtm);
     return std::string(buffer);
+}
+
+void Helper::print_progress_bar(int current, int total, int row, int col) {
+    int width = 30;
+    float ratio = total > 0 ? (float)current / total : 0;
+    int filled = static_cast<int>(ratio * width);
+
+    std::string bar = "[";
+    for (int i = 0; i < width; ++i) {
+        bar += (i < filled) ? '#' : '-';
+    }
+    bar += "] ";
+
+    bar += std::to_string(current) + " / " + std::to_string(total);
+
+    mvprintw(row, col, "%s", bar.c_str());
+    refresh();
 }

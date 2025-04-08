@@ -19,10 +19,11 @@ private:
     void show_host_info(const std::string& name, const std::string& ip);
     void load_hosts(const std::string& filename);
     void update_statuses();
+    void full_refresh_display();
     bool ping_host(const std::string& ip);
     bool ssh_check(const std::string& ip);
     std::vector<std::string> generate_display_list(); 
-    std::vector<std::string> generate_display_list_all();
+    std::vector<std::string> generate_full_display_list();
 };
 
 #endif

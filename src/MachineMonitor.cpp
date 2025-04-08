@@ -1,5 +1,6 @@
 #include "MachineMonitor.h"
 #include "Main_menu.h"
+#include "Helper.h"
 
 #include <iostream>
 #include <fstream>
@@ -130,6 +131,31 @@ void MachineMonitor::show_host_info(const string& name, const string& ip) {
     getch();
 }
 
+void MachineMonitor::full_refresh_display() {
+    clear();
+    int total = hosts.size();
+
+    for (size_t i = 0; i < hosts.size(); ++i) {
+        const auto& [name, ip] = hosts[i];
+        update_single_status(ip);
+
+        Helper::print_progress_bar(i + 1, total, 0, 0); // прогрес бар на верху
+    }
+
+    clear();
+    mvprintw(0, 0, "=== All Hosts Status ===");
+
+    auto display = generate_full_display_list();
+
+    for (size_t i = 0; i < display.size(); ++i) {
+        mvprintw(2 + i, 2, "%s", display[i].c_str());
+    }
+
+    mvprintw(3 + display.size(), 2, "Press any key to return...");
+    refresh();
+    getch();
+}
+
 vector<string> MachineMonitor::generate_display_list() {
     vector<string> display;
     for (const auto& [name, ip] : hosts) {
@@ -140,7 +166,7 @@ vector<string> MachineMonitor::generate_display_list() {
     return display;
 }
 
-vector<string> MachineMonitor::generate_display_list_all() {
+vector<string> MachineMonitor::generate_full_display_list() {
     vector<string> display;
     for (const auto& [name, ip] : hosts) {
         auto [ping, ssh] = statuses[ip];
@@ -168,7 +194,7 @@ void MachineMonitor::start_monitoring() {
 
         if (ch == 'q') break;
         if (ch == 'r') {
-            update_all_statuses();
+            full_refresh_display();
             continue;
         }
 

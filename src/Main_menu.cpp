@@ -48,14 +48,14 @@ int Main_menu::handle_choice_navigation(int choice, int max_options, int key, in
         }
     }
     else if (key == KEY_LEFT) {
-        if (current_page <= 0) {current_page = total_pages - 1;}
         current_page--;
+        if (current_page <= 0) {current_page = total_pages - 1;}
         return current_page * items_per_page;
         
     }
     else if (key == KEY_RIGHT) {
-        if (current_page > total_pages - 1) {current_page = 0;}
         current_page++;
+        if (current_page > total_pages - 1) {current_page = 0;}
         return current_page * items_per_page;
         
     }
@@ -67,6 +67,7 @@ int Main_menu::main_menu() {
         " = White list =", 
         " = Choose your poison =", 
         " = Create your poison =", 
+        " = Map of Empire =",
         " = Exterminatus =",
         " = Suicide ="
     };

@@ -3,6 +3,7 @@
 #include <ncurses.h>
 #include "Main_menu.h"
 #include "Playbook.h"
+#include "MachineMonitor.h"
 
 using namespace std;
 
@@ -46,12 +47,13 @@ int main() {
 			Playbook::create();
 		}
 		else if (choice == 3) {
-			Playbook::clear_ssh_fingerprints();
+			MachineMonitor monitor("/home/shymas/Desktop/Hosts/hosts.yaml");
+			monitor.start_monitoring();
 		}
 		else if (choice == 4) {
-			break;
+			Playbook::clear_ssh_fingerprints();
 		}
-
+		else if (choice == 5) { break; }
 	}
 	
 	

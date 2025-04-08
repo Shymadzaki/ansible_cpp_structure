@@ -139,7 +139,7 @@ void MachineMonitor::full_refresh_display() {
         const auto& [name, ip] = hosts[i];
         update_single_status(ip);
 
-        Helper::print_progress_bar(i + 1, total, 0, 0); // прогрес бар на верху
+        Helper::print_progress_bar(i + 1, total, 0, 0);
     }
 
     clear();

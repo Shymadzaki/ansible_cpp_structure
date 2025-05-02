@@ -127,25 +127,7 @@ void Playbook::create() {
 void Playbook::run(const string& playbook) {
     endwin();
 
-    string password;
-    cout << "Enter sudo password for Ansible: ";
-    
-    struct termios oldt, newt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~ECHO;
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-
-    getline(cin, password);
-    
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    cout << endl;
-
-    string command = "expect -c '"
-                     "spawn ansible-playbook " + playbook + " -i " + HOSTS + " --ask-become-pass; "
-                     "expect \"BECOME password:\"; "
-                     "send \"" + password + "\\r\"; "
-                     "interact' 2>&1";
+    string command = "ansible-playbook " + playbook + " -i " + HOSTS + " 2>&1";
 
     FILE* pipe = popen(command.c_str(), "r");
     if (!pipe) {
@@ -158,7 +140,7 @@ void Playbook::run(const string& playbook) {
     char buffer[512];
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
         output += buffer;
-        cout << buffer;  // Виводимо на екран для реального часу
+        cout << buffer;  
     }
 
     int exit_code = pclose(pipe);
@@ -170,6 +152,7 @@ void Playbook::run(const string& playbook) {
     
     initscr();
 }
+
 
 int Playbook::select_playbook(const vector<string>& playbooks, const string& playbook_dir) {
 	initscr();

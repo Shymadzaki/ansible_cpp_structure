@@ -10,6 +10,9 @@
 #include <unistd.h>
 #include <ncurses.h>
 #include <set>
+#include <filesystem>
+#include <ctime>
+#include <chrono> 
 
 using namespace std;
 
@@ -119,14 +122,26 @@ void MachineMonitor::show_host_info(const string& name, const string& ip) {
     update_single_status(ip);
     auto [ping, ssh] = statuses[ip];
 
+    auto system_info = parse_system_report(ip);
+
     clear();
     mvprintw(2, 5, "=== Host Details ===");
     mvprintw(4, 5, "Name: %s", name.c_str());
     mvprintw(5, 5, "IP: %s", ip.c_str());
     mvprintw(6, 5, "Ping Status: %s", ping ? "Online" : "Offline");
     mvprintw(7, 5, "SSH Access: %s", ssh ? "Available" : "No Access");
-    mvprintw(9, 5, "Press any key to return...");
 
+    int row = 9;
+    for (const auto& [section, content] : system_info) {
+        mvprintw(row++, 5, "--- %s ---", section.c_str());
+        istringstream stream(content);
+        string line;
+        while (getline(stream, line)) {
+            mvprintw(row++, 7, "%s", line.c_str());
+        }
+    }
+
+    mvprintw(row + 1, 5, "Press any key to return...");
     refresh();
     getch();
 }
@@ -138,23 +153,28 @@ void MachineMonitor::full_refresh_display() {
     for (size_t i = 0; i < hosts.size(); ++i) {
         const auto& [name, ip] = hosts[i];
         update_single_status(ip);
-
         Helper::print_progress_bar(i + 1, total, 0, 0);
     }
 
-    clear();
-    mvprintw(0, 0, "=== All Hosts Status ===");
+    int choice = 0;
+    int page = 0;
 
-    auto display = generate_full_display_list();
+    while (true) {
+        clear();
+        auto display = generate_full_display_list();
 
-    for (size_t i = 0; i < display.size(); ++i) {
-        mvprintw(2 + i, 2, "%s", display[i].c_str());
+        mvprintw(0, 0, "=== All Hosts Status ===\n (q: Back)\n");
+
+        Main_menu::print_menu(choice, display, page);
+
+        int ch = getch();
+
+        if (ch == 'q' || ch == 27) break;
+
+        choice = Main_menu::handle_choice_navigation(choice, display.size(), ch, page);
     }
-
-    mvprintw(3 + display.size(), 2, "Press any key to return...");
-    refresh();
-    getch();
 }
+
 
 vector<string> MachineMonitor::generate_display_list() {
     vector<string> display;
@@ -206,4 +226,58 @@ void MachineMonitor::start_monitoring() {
 
         choice = Main_menu::handle_choice_navigation(choice, display.size(), ch, page);
     }
+}
+
+map<string, string> MachineMonitor::parse_system_report(const string& ip) {
+    map<string, string> report_data;
+    string log_path = "/home/shymas/Desktop/sysinfo/" + ip;
+
+    string latest_file;
+    time_t latest_time = 0;
+
+    for (const auto& entry : filesystem::directory_iterator(log_path)) {
+        if (entry.is_regular_file()) {
+            auto ftime = filesystem::last_write_time(entry);
+            auto sctp = chrono::system_clock::to_time_t(
+                chrono::time_point_cast<chrono::system_clock::duration>(
+                    ftime - filesystem::file_time_type::clock::now()
+                    + chrono::system_clock::now()
+                )
+            );
+    
+            if (sctp > latest_time) {
+                latest_time = sctp;
+                latest_file = entry.path();
+            }
+        }
+    }
+
+    if (latest_file.empty()) {
+        report_data["Error"] = "Log file not found";
+        return report_data;
+    }
+
+    ifstream file(latest_file);
+    if (!file) {
+        report_data["Error"] = "Unable to open file";
+        return report_data;
+    }
+
+    string line;
+    string current_section;
+
+    while (getline(file, line)) {
+        if (line.find("== CPU ==") != string::npos) current_section = "CPU";
+        else if (line.find("== Memory ==") != string::npos) current_section = "Memory";
+        else if (line.find("== Swap ==") != string::npos) current_section = "Swap";
+        else if (line.find("== Disk Usage ==") != string::npos) current_section = "Disk";
+        else if (line.find("== S.M.A.R.T.") != string::npos) current_section = "SMART";
+        else if (line.find("== System Errors") != string::npos) current_section = "Errors";
+
+        else if (!line.empty() && current_section != "") {
+            report_data[current_section] += line + "\n";
+        }
+    }
+
+    return report_data;
 }

@@ -5,25 +5,28 @@
 #include <vector>
 #include <map>
 
+using namespace std;
+
 class MachineMonitor {
 public:
-    MachineMonitor(const std::string& filename);
+    MachineMonitor(const string& filename);
     void start_monitoring();
 
 private:
-    std::vector<std::pair<std::string, std::string>> hosts; 
-    std::map<std::string, std::pair<bool, bool>> statuses; 
+    vector<pair<string, string>> hosts; 
+    map<string, pair<bool, bool>> statuses; 
 
-    void update_single_status(const std::string& ip);
+    void update_single_status(const string& ip);
     void update_all_statuses();
-    void show_host_info(const std::string& name, const std::string& ip);
-    void load_hosts(const std::string& filename);
+    void show_host_info(const string& name, const string& ip);
+    void load_hosts(const string& filename);
     void update_statuses();
     void full_refresh_display();
-    bool ping_host(const std::string& ip);
-    bool ssh_check(const std::string& ip);
-    std::vector<std::string> generate_display_list(); 
-    std::vector<std::string> generate_full_display_list();
+    bool ping_host(const string& ip);
+    bool ssh_check(const string& ip);
+    vector<string> generate_display_list(); 
+    vector<string> generate_full_display_list();
+    map<string, string> parse_system_report(const string& ip);
 };
 
 #endif
